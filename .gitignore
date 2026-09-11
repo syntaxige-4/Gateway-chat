@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+venv/
+.venv/
+backend/tetchat.db
+backend/gatewaychat.db
+backend/*.db-shm
+backend/*.db-wal
+backend/logs/
+backend/media/uploads/*
+!backend/media/uploads/.gitkeep

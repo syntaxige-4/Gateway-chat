@@ -1,0 +1,4 @@
+# Gateway Chat backend has ZERO external dependencies by design — it runs on the
+# Python standard library only (http.server, sqlite3, socket, hashlib, urllib).
+# This file exists only so `pip install -r requirements.txt` is a harmless no-op
+# for tooling that expects one. Nothing needs to be installed to run the app.
