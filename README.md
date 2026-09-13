@@ -1,4 +1,4 @@
-<img src="assets/gateway-logo.svg" alt="Gateway" width="420">
+<img src="assets/gateway-logo.svg" alt="Gateway" width="100%">
 
 One account, four separate spaces.
 
