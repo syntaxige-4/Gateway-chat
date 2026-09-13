@@ -812,10 +812,10 @@ def get_notifications(handler, m, body):
                 "avatar_url": r["avatar_url"]}
 
     for r in c.execute(
-        """SELECT pl.post_id, u.id AS id, u.username, u.display_name, u.avatar_url
+        """SELECT pl.post_id, pl.created_at AS event_ts, u.id AS id, u.username, u.display_name, u.avatar_url
            FROM post_likes pl JOIN posts p ON p.id=pl.post_id JOIN users u ON u.id=pl.user_id
            WHERE p.user_id=? AND pl.user_id!=?""", (uid, uid)).fetchall():
-        events.append({"kind": "like", "ts": time.time(), "actor": actor_stub(r), "target": "your post"})
+        events.append({"kind": "like", "ts": r["event_ts"], "actor": actor_stub(r), "target": "your post"})
     for r in c.execute(
         """SELECT pr.post_id, pr.created_at AS event_ts, u.id AS id, u.username, u.display_name, u.avatar_url
            FROM post_reposts pr JOIN posts p ON p.id=pr.post_id JOIN users u ON u.id=pr.user_id
@@ -827,10 +827,10 @@ def get_notifications(handler, m, body):
            WHERE op.user_id=? AND rp.user_id!=?""", (uid, uid)).fetchall():
         events.append({"kind": "reply", "ts": r["event_ts"], "actor": actor_stub(r), "target": r["content"][:80]})
     for r in c.execute(
-        """SELECT pl.pulse_id, u.id AS id, u.username, u.display_name, u.avatar_url
+        """SELECT pl.pulse_id, pl.created_at AS event_ts, u.id AS id, u.username, u.display_name, u.avatar_url
            FROM pulse_likes pl JOIN pulses p ON p.id=pl.pulse_id JOIN users u ON u.id=pl.user_id
            WHERE p.user_id=? AND pl.user_id!=?""", (uid, uid)).fetchall():
-        events.append({"kind": "pulse_like", "ts": time.time(), "actor": actor_stub(r), "target": "your Pulse"})
+        events.append({"kind": "pulse_like", "ts": r["event_ts"], "actor": actor_stub(r), "target": "your Pulse"})
     for r in c.execute(
         """SELECT pc.created_at AS event_ts, pc.content, u.id AS id, u.username, u.display_name, u.avatar_url
            FROM pulse_comments pc JOIN pulses p ON p.id=pc.pulse_id JOIN users u ON u.id=pc.user_id
@@ -1151,7 +1151,7 @@ def like_pulse(handler, m, body):
         c.execute("DELETE FROM pulse_likes WHERE pulse_id=? AND user_id=?", (pulse_id, user["id"]))
         liked = False
     else:
-        c.execute("INSERT INTO pulse_likes (pulse_id, user_id) VALUES (?,?)", (pulse_id, user["id"]))
+        c.execute("INSERT INTO pulse_likes (pulse_id, user_id, created_at) VALUES (?,?,?)", (pulse_id, user["id"], time.time()))
         liked = True
     c.commit()
     return 200, {"liked": liked}
@@ -1237,7 +1237,7 @@ def like_post(handler, m, body):
         c.execute("DELETE FROM post_likes WHERE post_id=? AND user_id=?", (post_id, user["id"]))
         liked = False
     else:
-        c.execute("INSERT INTO post_likes (post_id, user_id) VALUES (?,?)", (post_id, user["id"]))
+        c.execute("INSERT INTO post_likes (post_id, user_id, created_at) VALUES (?,?,?)", (post_id, user["id"], time.time()))
         liked = True
     c.commit()
     return 200, {"liked": liked}

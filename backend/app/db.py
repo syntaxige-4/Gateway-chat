@@ -135,6 +135,7 @@ CREATE TABLE IF NOT EXISTS pulses (
 CREATE TABLE IF NOT EXISTS pulse_likes (
     pulse_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
+    created_at REAL NOT NULL DEFAULT 0,
     PRIMARY KEY (pulse_id, user_id)
 );
 
@@ -159,6 +160,7 @@ CREATE TABLE IF NOT EXISTS posts (
 CREATE TABLE IF NOT EXISTS post_likes (
     post_id INTEGER NOT NULL,
     user_id INTEGER NOT NULL,
+    created_at REAL NOT NULL DEFAULT 0,
     PRIMARY KEY (post_id, user_id)
 );
 
