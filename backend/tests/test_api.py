@@ -278,6 +278,37 @@ class ChatAndPulseTests(unittest.TestCase):
         self.assertFalse(data["liked"])
 
 
+class NotificationTests(unittest.TestCase):
+    def test_notifications_ordered_by_real_event_time_not_fetch_time(self):
+        token_a, user_a = register("nadia_t")
+        token_b, user_b = register("owen_t")
+
+        status, data = api("/api/posts", "POST", {"content": "first post"}, token=token_a)
+        post_id = data["id"]
+
+        # Owen likes the post first (older event)...
+        status, data = api(f"/api/posts/{post_id}/like", "POST", token=token_b)
+        self.assertTrue(data["liked"])
+
+        time.sleep(1.1)
+
+        # ...then replies to it (newer event). The reply must outrank the
+        # like in the notification feed. Before the fix, likes were always
+        # stamped with time.time() at *read* time, so they always sorted
+        # first regardless of when they actually happened.
+        status, data = api("/api/posts", "POST",
+                            {"content": "a reply", "reply_to_id": post_id}, token=token_b)
+        self.assertEqual(status, 200)
+
+        status, data = api("/api/notifications", token=token_a)
+        self.assertEqual(status, 200)
+        kinds = [n["kind"] for n in data["notifications"]]
+        self.assertIn("like", kinds)
+        self.assertIn("reply", kinds)
+        self.assertLess(kinds.index("reply"), kinds.index("like"),
+                         "newer reply should sort before older like")
+
+
 class RateLimitTests(unittest.TestCase):
     def test_auth_rate_limit_triggers(self):
         # the "auth" limiter allows 8 requests / 60s per source IP; since all
